@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  proxy:
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge

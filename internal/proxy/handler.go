@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -22,7 +21,7 @@ func HandleProxy(w http.ResponseWriter, r *http.Request) {
 
 	// Modify the request before forwarding
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		log.Printf("✅ Forwarded request to: %s%s", url, r.URL.Path)
+		log.Printf(" Forwarded request to: %s%s", url, r.URL.Path)
 		return nil
 	}
 

@@ -7,29 +7,33 @@ import (
 	"net/url"
 )
 
-func HandleProxy(w http.ResponseWriter, r *http.Request) {
-	// Change this to any target service you want to forward to
-	targetURL := "https://httpbin.org"
+var (
+	target = "https://httpbin.org"
+	proxy  *httputil.ReverseProxy
+)
 
-	url, err := url.Parse(targetURL)
+func init() {
+	targetURL, err := url.Parse(target)
 	if err != nil {
-		http.Error(w, "Bad target URL", http.StatusInternalServerError)
-		return
+		log.Fatalf("❌ Invalid target URL: %v", err)
 	}
 
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	proxy = httputil.NewSingleHostReverseProxy(targetURL)
 
-	// Modify the request before forwarding
+	// Modify response after proxy forwards
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		log.Printf(" Forwarded request to: %s%s", url, r.URL.Path)
+		log.Printf("✅ Forwarded request to: %s", resp.Request.URL.String())
 		return nil
 	}
 
-	// Optional: Custom error handler
+	// Custom error handler
 	proxy.ErrorHandler = func(w http.ResponseWriter, req *http.Request, err error) {
-		log.Printf(" Proxy error: %v", err)
-		http.Error(w, "Proxy error", http.StatusBadGateway)
+		log.Printf("❌ Proxy error: %v", err)
+		http.Error(w, "Proxy error: "+err.Error(), http.StatusBadGateway)
 	}
+}
 
+// HandleProxy proxies the HTTP request to the target
+func HandleProxy(w http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(w, r)
 }
